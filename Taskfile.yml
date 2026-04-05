@@ -1,0 +1,36 @@
+version: "3"
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - npm install
+    sources:
+      - package.json
+    generates:
+      - node_modules/.package-lock.json
+
+  compile:
+    desc: Build extension with esbuild
+    deps: [install]
+    cmds:
+      - npm run compile
+    sources:
+      - src/**/*.ts
+      - esbuild.mjs
+    generates:
+      - dist/extension.js
+
+  watch:
+    desc: Watch mode
+    deps: [install]
+    cmds:
+      - npm run watch
+
+  package:
+    desc: Build .vsix for distribution
+    deps: [compile]
+    cmds:
+      - ./node_modules/.bin/vsce package
+    generates:
+      - "*.vsix"

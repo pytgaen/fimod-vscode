@@ -1,0 +1,8 @@
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- left brace { — thin, shorter than f -->
+  <path d="M7.5 6C6.12 6 5 7.12 5 8.5v3c0 .83-.67 1.5-1.5 1.5v2c.83 0 1.5.67 1.5 1.5v3c0 1.38 1.12 2.5 2.5 2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <!-- right brace } — thin, shorter than f -->
+  <path d="M20.5 6c1.38 0 2.5 1.12 2.5 2.5v3c0 .83.67 1.5 1.5 1.5v2c-.83 0-1.5.67-1.5 1.5v3c0 1.38-1.12 2.5-2.5 2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <!-- f — bold filled, taller than braces -->
+  <path d="M12.8 7c0-2.1 1.2-3.8 3.2-3.8.8 0 1.4.3 1.7.55l-1.1 2c-.12-.1-.32-.2-.55-.2-.65 0-1 .55-1 1.4V9h1.7v2.5h-1.7v8h-2.8v-8H11V9h1.8V7z" fill="currentColor"/>
+</svg>

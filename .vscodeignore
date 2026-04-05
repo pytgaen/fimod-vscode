@@ -1,0 +1,10 @@
+**/*
+!dist/extension.js
+!dist/hljs.js
+!media/**
+!assets/icon.png
+!assets/logo-image.jpg
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE

@@ -1,0 +1,322 @@
+{
+  "name": "fimod-vscode",
+  "displayName": "Fimod",
+  "description": "VS Code extension for fimod — transform structured data with Python mold scripts",
+  "version": "0.1.0-beta.1",
+  "publisher": "pytgaen",
+  "license": "Apache-2.0",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pytgaen/fimod-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Formatters",
+    "Other"
+  ],
+  "keywords": [
+    "fimod",
+    "mold",
+    "data",
+    "transform",
+    "json",
+    "yaml",
+    "toml",
+    "csv",
+    "python",
+    "shape"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "fimod-sidebar",
+          "title": "Fimod",
+          "icon": "media/fimod-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "fimod-sidebar": [
+        {
+          "id": "fimod.registryExplorer",
+          "name": "Registry Explorer",
+          "contextualTitle": "Fimod Registry"
+        },
+        {
+          "id": "fimod.localMolds",
+          "name": "Local Molds",
+          "contextualTitle": "Fimod Local Molds"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "fimod.registryExplorer",
+        "contents": "No registry sources configured.\n[Run Setup](command:fimod.registrySetup)"
+      },
+      {
+        "view": "fimod.localMolds",
+        "contents": "No local molds found.\nOpen a folder containing mold scripts, or configure [scan paths](command:workbench.action.openSettings?%5B%22fimod.mold.scanPaths%22%5D)."
+      }
+    ],
+    "commands": [
+      {
+        "command": "fimod.shape",
+        "title": "Fimod: Shape"
+      },
+      {
+        "command": "fimod.downloadBinary",
+        "title": "Fimod: Download / Update Binary"
+      },
+      {
+        "command": "fimod.registryRefresh",
+        "title": "Fimod: Refresh Registry",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "fimod.registryAddSource",
+        "title": "Fimod: Add Source",
+        "icon": "$(add)"
+      },
+      {
+        "command": "fimod.registryRemoveSource",
+        "title": "Fimod: Remove Source",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "fimod.registrySetPriority",
+        "title": "Fimod: Set Source Priority"
+      },
+      {
+        "command": "fimod.registryBuildCatalog",
+        "title": "Fimod: Build Catalog"
+      },
+      {
+        "command": "fimod.registrySetup",
+        "title": "Fimod: Registry Setup",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "fimod.registryShowSource",
+        "title": "Fimod: Show Source Details"
+      },
+      {
+        "command": "fimod.localMoldsRefresh",
+        "title": "Fimod: Refresh Local Molds",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "fimod.moldOpen",
+        "title": "Fimod: Open Mold",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "fimod.moldRun",
+        "title": "Fimod: Run Mold",
+        "icon": "$(play)"
+      },
+      {
+        "command": "fimod.moldTest",
+        "title": "Fimod: Test Mold",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "fimod.moldShowDetail",
+        "title": "Fimod: Show Mold Detail",
+        "icon": "$(info)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "fimod.shape",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "editorTextFocus"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "fimod.editorSubmenu",
+        "label": "Fimod"
+      },
+      {
+        "id": "fimod.explorerSubmenu",
+        "label": "Fimod"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "fimod.editorSubmenu",
+          "group": "1_modification@10"
+        }
+      ],
+      "fimod.editorSubmenu": [
+        {
+          "command": "fimod.shape"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "fimod.explorerSubmenu",
+          "when": "resourceScheme == file",
+          "group": "navigation@90"
+        }
+      ],
+      "fimod.explorerSubmenu": [
+        {
+          "command": "fimod.shape"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "fimod.registryRefresh",
+          "when": "view == fimod.registryExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "fimod.registryAddSource",
+          "when": "view == fimod.registryExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "fimod.registrySetup",
+          "when": "view == fimod.registryExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "fimod.localMoldsRefresh",
+          "when": "view == fimod.localMolds",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "fimod.moldShowDetail",
+          "when": "view == fimod.registryExplorer && viewItem == registryMold",
+          "group": "inline"
+        },
+        {
+          "command": "fimod.registryRemoveSource",
+          "when": "view == fimod.registryExplorer && viewItem == registrySource",
+          "group": "inline"
+        },
+        {
+          "command": "fimod.registrySetPriority",
+          "when": "view == fimod.registryExplorer && viewItem == registrySource",
+          "group": "1_actions"
+        },
+        {
+          "command": "fimod.registryBuildCatalog",
+          "when": "view == fimod.registryExplorer && viewItem == registrySource",
+          "group": "2_build"
+        },
+        {
+          "command": "fimod.registryShowSource",
+          "when": "view == fimod.registryExplorer && viewItem == registrySource",
+          "group": "3_info"
+        },
+        {
+          "command": "fimod.moldOpen",
+          "when": "view == fimod.localMolds && viewItem == localMold",
+          "group": "inline"
+        },
+        {
+          "command": "fimod.moldRun",
+          "when": "view == fimod.localMolds && viewItem == localMold",
+          "group": "inline"
+        },
+        {
+          "command": "fimod.moldTest",
+          "when": "view == fimod.localMolds && viewItem == localMold",
+          "group": "1_actions"
+        },
+        {
+          "command": "fimod.moldShowDetail",
+          "when": "view == fimod.localMolds && viewItem == localMold",
+          "group": "1_actions"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Fimod",
+      "properties": {
+        "fimod.binaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Override path to the fimod binary. If empty, searches PATH."
+        },
+        "fimod.shape.preview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show diff preview before applying shape transformations."
+        },
+        "fimod.shape.historySize": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Number of recent molds/expressions shown at the top of the quick pick."
+        },
+        "fimod.shape.formatDetection": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "manual"
+          ],
+          "description": "Format detection mode. 'auto' detects from file language/content, 'manual' prompts for input/output formats."
+        },
+        "fimod.registry.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh registry tree on activation."
+        },
+        "fimod.mold.scanPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional directories to scan for local molds."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "package": "npm run compile -- --production && npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/vsce": "^3.7.1",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.8.2",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@types/yauzl": "^2.10.3",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.1",
+    "tar": "^7.5.13",
+    "yauzl": "^3.3.0"
+  }
+}
