@@ -132,6 +132,20 @@
         "command": "fimod.moldShowDetail",
         "title": "Fimod: Show Mold Detail",
         "icon": "$(info)"
+      },
+      {
+        "command": "fimod.playground",
+        "title": "Fimod: Open Playground",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "fimod.moldSetTestsDir",
+        "title": "Fimod: Override Tests Directory…"
+      },
+      {
+        "command": "fimod.localMoldsSettings",
+        "title": "Fimod: Local Molds Settings",
+        "icon": "$(gear)"
       }
     ],
     "keybindings": [
@@ -162,6 +176,9 @@
       "fimod.editorSubmenu": [
         {
           "command": "fimod.shape"
+        },
+        {
+          "command": "fimod.playground"
         }
       ],
       "explorer/context": [
@@ -174,6 +191,9 @@
       "fimod.explorerSubmenu": [
         {
           "command": "fimod.shape"
+        },
+        {
+          "command": "fimod.playground"
         }
       ],
       "view/title": [
@@ -196,14 +216,14 @@
           "command": "fimod.localMoldsRefresh",
           "when": "view == fimod.localMolds",
           "group": "navigation"
+        },
+        {
+          "command": "fimod.localMoldsSettings",
+          "when": "view == fimod.localMolds",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
-        {
-          "command": "fimod.moldShowDetail",
-          "when": "view == fimod.registryExplorer && viewItem == registryMold",
-          "group": "inline"
-        },
         {
           "command": "fimod.registryRemoveSource",
           "when": "view == fimod.registryExplorer && viewItem == registrySource",
@@ -225,6 +245,11 @@
           "group": "3_info"
         },
         {
+          "command": "fimod.playground",
+          "when": "view == fimod.registryExplorer && viewItem == registryMold",
+          "group": "1_actions"
+        },
+        {
           "command": "fimod.moldOpen",
           "when": "view == fimod.localMolds && viewItem == localMold",
           "group": "inline"
@@ -240,7 +265,12 @@
           "group": "1_actions"
         },
         {
-          "command": "fimod.moldShowDetail",
+          "command": "fimod.playground",
+          "when": "view == fimod.localMolds && viewItem == localMold",
+          "group": "1_actions"
+        },
+        {
+          "command": "fimod.moldSetTestsDir",
           "when": "view == fimod.localMolds && viewItem == localMold",
           "group": "1_actions"
         }
@@ -287,6 +317,11 @@
           },
           "default": [],
           "description": "Additional directories to scan for local molds."
+        },
+        "fimod.mold.testsDirPattern": {
+          "type": "string",
+          "default": "${workspaceFolder}/tests-molds/${moldName}",
+          "description": "Pattern for the tests directory used by 'fimod mold test'. Placeholders: ${workspaceFolder}, ${moldDir}, ${moldName}. Per-mold overrides (set via the Local Molds context menu) take precedence."
         }
       }
     }
@@ -315,6 +350,7 @@
   },
   "dependencies": {
     "@types/yauzl": "^2.10.3",
+    "@vscode/codicons": "^0.0.45",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.1",
     "tar": "^7.5.13",

@@ -117,7 +117,10 @@ const FORMATS_OFF: vscode.QuickInputButton = {
   tooltip: "Choose input/output formats (off — auto-detect)",
 };
 
-export async function pickMoldOrExpression(localMolds?: LocalMoldNode[]): Promise<PickResult | undefined> {
+export async function pickMoldOrExpression(
+  localMolds?: LocalMoldNode[],
+  detectedFormat?: string,
+): Promise<PickResult | undefined> {
   const config = vscode.workspace.getConfiguration("fimod.shape");
   let previewEnabled = config.get<boolean>("preview", true);
   let chooseFormatsEnabled = config.get<string>("formatDetection", "auto") === "manual";
@@ -129,7 +132,7 @@ export async function pickMoldOrExpression(localMolds?: LocalMoldNode[]): Promis
   function getTitle(): string {
     const parts: string[] = [];
     parts.push(previewEnabled ? "preview: on" : "preview: off");
-    parts.push(chooseFormatsEnabled ? "formats: custom" : "formats: auto");
+    parts.push(chooseFormatsEnabled ? "formats: custom" : `formats: auto (${detectedFormat ?? "?"})`);
     return parts.join("  ·  ");
   }
 

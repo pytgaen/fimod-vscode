@@ -1,7 +1,18 @@
 import * as esbuild from "esbuild";
+import { copyFile, mkdir } from "node:fs/promises";
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
+
+async function copyCodicons() {
+  await mkdir("dist", { recursive: true });
+  await Promise.all([
+    copyFile("node_modules/@vscode/codicons/dist/codicon.css", "dist/codicon.css"),
+    copyFile("node_modules/@vscode/codicons/dist/codicon.ttf", "dist/codicon.ttf"),
+  ]);
+}
+
+await copyCodicons();
 
 const ctx = await esbuild.context({
   entryPoints: ["src/extension.ts"],

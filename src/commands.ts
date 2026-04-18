@@ -1,10 +1,78 @@
 import * as vscode from "vscode";
 import { addSource, removeSource, setPriority, buildCatalog, runSetup, invalidateRegistryCache } from "./registry.js";
 import * as path from "node:path";
-import { invalidateMoldCache, runFimod, getOutputChannel, logStderr } from "./fimod.js";
+import * as fs from "node:fs";
+import { invalidateMoldCache, runFimod, getOutputChannel, logStderr, extractErrorSummary } from "./fimod.js";
 import { RegistryTreeProvider, RegistryNode } from "./registryTree.js";
 import { LocalMoldsTreeProvider, LocalMoldNode } from "./localMoldsTree.js";
 import { showMoldDetailView } from "./moldDetail.js";
+import { openPlayground } from "./playgroundPanel.js";
+
+const TESTS_DIR_OVERRIDES_KEY = "fimod.mold.testsDirOverrides";
+
+function dirExists(p: string): boolean {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function getTestsDirOverride(ctx: vscode.ExtensionContext, moldFsPath: string): string | undefined {
+  const overrides = ctx.workspaceState.get<Record<string, string>>(TESTS_DIR_OVERRIDES_KEY, {});
+  return overrides[moldFsPath];
+}
+
+async function setTestsDirOverride(ctx: vscode.ExtensionContext, moldFsPath: string, dir: string): Promise<void> {
+  const overrides = { ...ctx.workspaceState.get<Record<string, string>>(TESTS_DIR_OVERRIDES_KEY, {}) };
+  overrides[moldFsPath] = dir;
+  await ctx.workspaceState.update(TESTS_DIR_OVERRIDES_KEY, overrides);
+}
+
+function resolveTestsDir(ctx: vscode.ExtensionContext, moldUri: vscode.Uri): string {
+  const override = getTestsDirOverride(ctx, moldUri.fsPath);
+  if (override) return override;
+
+  const pattern = vscode.workspace
+    .getConfiguration("fimod.mold")
+    .get<string>("testsDirPattern", "${workspaceFolder}/tests-molds/${moldName}");
+
+  const moldDir = path.dirname(moldUri.fsPath);
+  const moldName = path.basename(moldUri.fsPath, ".py");
+  const wsFolder = vscode.workspace.getWorkspaceFolder(moldUri)?.uri.fsPath ?? path.dirname(moldDir);
+
+  return pattern
+    .replace(/\$\{moldDir\}/g, moldDir)
+    .replace(/\$\{moldName\}/g, moldName)
+    .replace(/\$\{workspaceFolder\}/g, wsFolder);
+}
+
+function canonicalizeDir(dirFsPath: string, moldUri: vscode.Uri): string {
+  const wsFolder = vscode.workspace.getWorkspaceFolder(moldUri)?.uri.fsPath;
+  if (wsFolder) {
+    const rel = path.relative(wsFolder, dirFsPath);
+    if (rel && !rel.startsWith("..") && !path.isAbsolute(rel)) {
+      return "${workspaceFolder}/" + rel.split(path.sep).join("/");
+    }
+  }
+  return dirFsPath;
+}
+
+async function pickTestsDir(ctx: vscode.ExtensionContext, node: LocalMoldNode): Promise<string | undefined> {
+  const current = resolveTestsDir(ctx, node.uri);
+  const defaultUri = dirExists(current) ? vscode.Uri.file(current) : vscode.Uri.file(path.dirname(node.uri.fsPath));
+  const picked = await vscode.window.showOpenDialog({
+    canSelectFiles: false,
+    canSelectFolders: true,
+    canSelectMany: false,
+    defaultUri,
+    openLabel: "Use as tests directory",
+  });
+  if (!picked || picked.length === 0) return undefined;
+  const canonical = canonicalizeDir(picked[0].fsPath, node.uri);
+  await setTestsDirOverride(ctx, node.uri.fsPath, canonical);
+  return canonical;
+}
 
 export function registerCommands(
   ctx: vscode.ExtensionContext,
@@ -117,14 +185,33 @@ export function registerCommands(
     vscode.commands.registerCommand("fimod.moldTest", async (node?: LocalMoldNode) => {
       if (!node) return;
       const moldPath = node.uri.fsPath;
-      const testsDir = path.join(path.dirname(moldPath), "tests");
-      const result = await runFimod(["test", moldPath, testsDir]);
+      let testsDir = resolveTestsDir(ctx, node.uri);
+
+      if (!dirExists(testsDir)) {
+        const choice = await vscode.window.showErrorMessage(`Tests directory not found: ${testsDir}`, "Set Directory");
+        if (choice !== "Set Directory") return;
+        const picked = await pickTestsDir(ctx, node);
+        if (!picked) return;
+        testsDir = resolveTestsDir(ctx, node.uri);
+      }
+
+      const result = await runFimod(["mold", "test", moldPath, testsDir]);
       logStderr(result);
-      getOutputChannel().show();
       if (result.exitCode === 0) {
         vscode.window.showInformationMessage(`Tests passed for "${node.name}".`);
       } else {
-        vscode.window.showErrorMessage(`Tests failed for "${node.name}". See Output for details.`);
+        const summary = extractErrorSummary(result);
+        const isMissingDir = /Not a directory|No such file/i.test(summary);
+        const buttons = isMissingDir ? ["Set Directory", "Show Output"] : ["Show Output"];
+        const choice = await vscode.window.showErrorMessage(`Tests failed for "${node.name}": ${summary}`, ...buttons);
+        if (choice === "Set Directory") {
+          const picked = await pickTestsDir(ctx, node);
+          if (picked) {
+            await vscode.commands.executeCommand("fimod.moldTest", node);
+          }
+        } else if (choice === "Show Output") {
+          getOutputChannel().show();
+        }
       }
     }),
 
@@ -135,5 +222,59 @@ export function registerCommands(
         await showMoldDetailView(ref);
       },
     ),
+
+    vscode.commands.registerCommand("fimod.localMoldsSettings", () => {
+      void vscode.commands.executeCommand("workbench.action.openSettings", "fimod.mold");
+    }),
+
+    vscode.commands.registerCommand("fimod.moldSetTestsDir", async (node?: LocalMoldNode) => {
+      if (!node) return;
+      const picked = await pickTestsDir(ctx, node);
+      if (picked) {
+        vscode.window.showInformationMessage(`Tests directory for "${node.name}" → ${picked}`);
+      }
+    }),
+
+    // --- Phase 3 — Playground ---
+
+    vscode.commands.registerCommand("fimod.playground", async (arg?: vscode.Uri | LocalMoldNode | RegistryNode) => {
+      if (arg && typeof arg === "object" && "kind" in arg && arg.kind === "mold" && "mold" in arg) {
+        await openPlayground({
+          moldRef: {
+            kind: "mold",
+            cliArg: "@" + arg.mold.name,
+            displayName: arg.mold.name,
+          },
+        });
+        return;
+      }
+
+      let uri: vscode.Uri | undefined;
+      if (arg instanceof vscode.Uri) {
+        uri = arg;
+      } else if (arg && (arg as LocalMoldNode).uri instanceof vscode.Uri) {
+        uri = (arg as LocalMoldNode).uri;
+      } else {
+        uri = vscode.window.activeTextEditor?.document.uri;
+      }
+
+      if (!uri || uri.scheme !== "file") {
+        await openPlayground({});
+        return;
+      }
+
+      if (uri.fsPath.endsWith(".py")) {
+        await openPlayground({
+          moldRef: {
+            kind: "mold",
+            cliArg: uri.fsPath,
+            displayName: path.basename(uri.fsPath),
+            fsPath: uri.fsPath,
+          },
+        });
+      } else {
+        await openPlayground({ inputUri: uri });
+      }
+    }),
   );
 }

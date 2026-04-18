@@ -121,6 +121,14 @@ export function logStderr(result: FimodResult): void {
   }
 }
 
+export function extractErrorSummary(result: FimodResult): string {
+  const tagged = result.messages.filter((m) => m.level === "error" || m.level === "fail").map((m) => m.text);
+  if (tagged.length > 0) return tagged.join(" / ");
+  const firstLine = result.stderr.split("\n").find((l) => l.trim());
+  if (firstLine) return firstLine.trim();
+  return `exit ${result.exitCode}`;
+}
+
 export function showError(message: string, result?: FimodResult): void {
   if (result) {
     logStderr(result);

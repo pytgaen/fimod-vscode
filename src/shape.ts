@@ -5,6 +5,7 @@ import * as path from "path";
 import { runFimod, handleFimodError } from "./fimod.js";
 import { detectFormat, pickOutputFormatOrCustom } from "./format.js";
 import { pickMoldOrExpression } from "./moldPicker.js";
+import { buildShapeArgs } from "./fimodArgs.js";
 import type { LocalMoldsTreeProvider } from "./localMoldsTree.js";
 
 const FILE_MODE_THRESHOLD = 20 * 1024 * 1024; // 20 Mo
@@ -41,13 +42,14 @@ export async function shape(fileUri?: vscode.Uri): Promise<void> {
     return;
   }
 
+  const detected = detectFormat(text, editor.document.languageId);
+
   const localMolds = localMoldsTreeProvider?.getCachedChildren() ?? [];
-  const pick = await pickMoldOrExpression(localMolds);
+  const pick = await pickMoldOrExpression(localMolds, detected);
   if (!pick) {
     return;
   }
 
-  const detected = detectFormat(text, editor.document.languageId);
   let inputFormat = detected;
   let outputFormat = detected;
 
@@ -62,20 +64,13 @@ export async function shape(fileUri?: vscode.Uri): Promise<void> {
     outputFormat = formatChoice.outputFormat;
   }
 
-  const args = ["shape"];
-  if (inputFormat) {
-    args.push("--input-format", inputFormat);
-  }
-  if (outputFormat) {
-    args.push("--output-format", outputFormat);
-  }
-  if (pick.choice.type === "expression") {
-    args.push("-e", pick.choice.expr);
-  } else if (pick.choice.type === "localMold") {
-    args.push("-m", pick.choice.path);
-  } else {
-    args.push("-m", pick.choice.name);
-  }
+  const args = buildShapeArgs({
+    inputFormat,
+    outputFormat,
+    expression: pick.choice.type === "expression" ? pick.choice.expr : undefined,
+    mold:
+      pick.choice.type === "localMold" ? pick.choice.path : pick.choice.type === "mold" ? pick.choice.name : undefined,
+  });
 
   let output: string;
 

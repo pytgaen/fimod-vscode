@@ -1,32 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 import MarkdownIt from "markdown-it";
-import hljs from "highlight.js/lib/core";
-import python from "highlight.js/lib/languages/python";
-import json from "highlight.js/lib/languages/json";
-import yaml from "highlight.js/lib/languages/yaml";
-import bash from "highlight.js/lib/languages/bash";
-import toml from "highlight.js/lib/languages/ini"; // hljs uses ini for toml
-import markdown from "highlight.js/lib/languages/markdown";
-import javascript from "highlight.js/lib/languages/javascript";
-import sql from "highlight.js/lib/languages/sql";
-import shell from "highlight.js/lib/languages/shell";
-
-hljs.registerLanguage("python", python);
-hljs.registerLanguage("json", json);
-hljs.registerLanguage("yaml", yaml);
-hljs.registerLanguage("bash", bash);
-hljs.registerLanguage("toml", toml);
-hljs.registerLanguage("markdown", markdown);
-hljs.registerLanguage("javascript", javascript);
-hljs.registerLanguage("js", javascript);
-hljs.registerLanguage("sql", sql);
-hljs.registerLanguage("shell", shell);
-hljs.registerLanguage("sh", shell);
+import { hljs } from "./hljsSetup.js";
 import { showMold, fetchReadme, MoldDetail } from "./registry.js";
-import { runFimod } from "./fimod.js";
+import { runPlayground } from "./playgroundEngine.js";
 import { extractDocstring } from "./localMoldsTree.js";
-import { escapeHtml } from "./util.js";
+import { escapeHtml, getNonce } from "./util.js";
 import { FORMATS } from "./format.js";
 import { readFile } from "node:fs/promises";
 
@@ -117,35 +96,18 @@ export async function showMoldDetailView(moldRef: {
   messageListener?.dispose();
   messageListener = currentPanel.webview.onDidReceiveMessage(async (msg: WebviewMessage) => {
     if (msg.type === "run") {
-      const cliArgs = ["shape"];
-      if (msg.inputFormat) {
-        cliArgs.push("--input-format", msg.inputFormat);
-      }
-      if (msg.outputFormat) {
-        cliArgs.push("--output-format", msg.outputFormat);
-      }
-      if (msg.moldArgs) {
-        for (const pair of msg.moldArgs.split("\n")) {
-          const trimmed = pair.trim();
-          if (trimmed) {
-            cliArgs.push("--arg", trimmed);
-          }
-        }
-      }
-      cliArgs.push("-m", moldArg);
-      const result = await runFimod(cliArgs, msg.input);
-      if (result.exitCode !== 0) {
-        const errText =
-          result.messages
-            .filter((m) => m.level === "error" || m.level === "fail")
-            .map((m) => m.text)
-            .join("\n") ||
-          result.stderr ||
-          `Exit code ${result.exitCode}`;
-        currentPanel?.webview.postMessage({ type: "error", message: errText });
+      const result = await runPlayground({
+        mold: moldArg,
+        input: msg.input,
+        inputFormat: msg.inputFormat,
+        outputFormat: msg.outputFormat,
+        moldArgs: msg.moldArgs ? msg.moldArgs.split("\n") : undefined,
+      });
+      if (result.kind === "error") {
+        currentPanel?.webview.postMessage({ type: "error", message: result.errorText });
       } else {
         const effectiveOutFmt = msg.outputFormat || detail.outputFormat || msg.inputFormat || detail.inputFormat;
-        currentPanel?.webview.postMessage({ type: "result", output: result.stdout, format: effectiveOutFmt });
+        currentPanel?.webview.postMessage({ type: "result", output: result.output, format: effectiveOutFmt });
       }
     }
   });
@@ -638,13 +600,4 @@ function buildHtml(
   </script>
 </body>
 </html>`;
-}
-
-function getNonce(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let nonce = "";
-  for (let i = 0; i < 32; i++) {
-    nonce += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return nonce;
 }
