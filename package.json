@@ -298,7 +298,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "package": "npm run compile -- --production && npx @vscode/vsce package"
+    "package": "npm run compile -- --production && npx @vscode/vsce package",
+    "changelog": "node scripts/changelog.mjs"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",

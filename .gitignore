@@ -24,3 +24,4 @@ npm-debug.log*
 
 # Coverage
 coverage/
+.claude/
