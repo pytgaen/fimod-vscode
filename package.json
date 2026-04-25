@@ -2,7 +2,7 @@
   "name": "fimod-vscode",
   "displayName": "Fimod",
   "description": "VS Code extension for fimod — transform structured data with Python mold scripts",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "publisher": "pytgaen",
   "license": "Apache-2.0",
   "icon": "assets/icon.png",

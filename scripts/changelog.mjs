@@ -28,11 +28,10 @@ const HEADER_RE = /^(\w+)(?:\(([\w\-./]+)\))?(!)?:\s*(.+)$/;
 
 let lastTag = "";
 try {
-  lastTag = execFileSync(
-    "git",
-    ["describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", "--exclude", "*-rc.*", "--exclude", "*-beta.*"],
-    { stdio: ["ignore", "pipe", "ignore"], encoding: "utf8" },
-  ).trim();
+  lastTag = execFileSync("git", ["describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", "--exclude", "*-rc.*"], {
+    stdio: ["ignore", "pipe", "ignore"],
+    encoding: "utf8",
+  }).trim();
 } catch {
   lastTag = "";
 }
