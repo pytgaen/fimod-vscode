@@ -1,5 +1,7 @@
 node_modules/
 dist/
+out/
+tests-data/test-workspace/.vscode/settings.json
 *.vsix
 .vscode-test/
 .astx/

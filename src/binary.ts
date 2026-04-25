@@ -279,11 +279,11 @@ const TWENTY_FOUR_H = 24 * 60 * 60 * 1000;
 const LAST_CHECK_KEY = "fimod.binary.lastCheckMs";
 const SKIPPED_KEY = "fimod.binary.skippedVersion";
 
-function stripV(v: string): string {
+export function stripV(v: string): string {
   return v.replace(/^v/, "");
 }
 
-function isNewerVersion(candidate: string, current: string): boolean {
+export function isNewerVersion(candidate: string, current: string): boolean {
   const parts = (v: string) => v.split(".").map(Number);
   const [ca, cb, cc] = parts(candidate);
   const [la, lb, lc] = parts(current);

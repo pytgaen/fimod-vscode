@@ -339,17 +339,25 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "package": "npm run compile -- --production && npx @vscode/vsce package",
-    "changelog": "node scripts/changelog.mjs"
+    "changelog": "node scripts/changelog.mjs",
+    "compile:test": "tsc -p tsconfig.test.json",
+    "test:unit": "mocha --ui tdd 'out/test/unit/**/*.test.js'",
+    "pretest": "npm run compile && npm run compile:test && node scripts/prepare-test-workspace.mjs",
+    "test": "npm run test:unit && vscode-test"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "esbuild": "^0.25.0",
     "eslint": "^9.0.0",
+    "mocha": "^11.7.5",
     "prettier": "^3.8.2",
     "typescript": "^5.6.0"
   },
