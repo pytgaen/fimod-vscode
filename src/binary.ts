@@ -7,8 +7,9 @@ import * as https from "node:https";
 import * as crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { getOutputChannel } from "./fimod.js";
+import { getOutputChannel, getVersion } from "./fimod.js";
 import { getBinaryName, httpGet } from "./util.js";
+import { refreshVersion } from "./statusBar.js";
 
 const REPO = "pytgaen/fimod";
 const RELEASES_BASE = `https://github.com/${REPO}/releases`;
@@ -271,6 +272,78 @@ async function isOnPath(): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+const TWENTY_FOUR_H = 24 * 60 * 60 * 1000;
+const LAST_CHECK_KEY = "fimod.binary.lastCheckMs";
+const SKIPPED_KEY = "fimod.binary.skippedVersion";
+
+function stripV(v: string): string {
+  return v.replace(/^v/, "");
+}
+
+function isNewerVersion(candidate: string, current: string): boolean {
+  const parts = (v: string) => v.split(".").map(Number);
+  const [ca, cb, cc] = parts(candidate);
+  const [la, lb, lc] = parts(current);
+  if (ca !== la) return ca > la;
+  if (cb !== lb) return cb > lb;
+  return cc > lc;
+}
+
+export async function checkForUpdates(ctx: vscode.ExtensionContext): Promise<void> {
+  if (!vscode.workspace.getConfiguration("fimod").get<boolean>("binary.autoCheckUpdates", true)) return;
+
+  const configured = vscode.workspace.getConfiguration("fimod").get<string>("binaryPath");
+  if (configured) return;
+  if (!managedBinaryExists(ctx)) return;
+
+  const lastCheck = ctx.globalState.get<number>(LAST_CHECK_KEY, 0);
+  if (Date.now() - lastCheck < TWENTY_FOUR_H) return;
+
+  await ctx.globalState.update(LAST_CHECK_KEY, Date.now());
+
+  try {
+    const latestRaw = await resolveLatestVersion();
+    const localRaw = await getVersion();
+    if (!localRaw) return;
+
+    const match = /^fimod\s+(\S+)/.exec(localRaw);
+    if (!match) return;
+
+    const latest = stripV(latestRaw);
+    const local = stripV(match[1]);
+
+    if (!isNewerVersion(latest, local)) return;
+
+    const skipped = ctx.globalState.get<string>(SKIPPED_KEY, "");
+    if (stripV(skipped) === latest) return;
+
+    const choice = await vscode.window.showInformationMessage(
+      `Fimod ${latest} available (you have ${local}). Update?`,
+      { modal: false },
+      { title: "Update" },
+      { title: "Skip this version" },
+      { title: "Later" },
+    );
+
+    if (!choice || choice.title === "Later") return;
+
+    if (choice.title === "Skip this version") {
+      await ctx.globalState.update(SKIPPED_KEY, latestRaw);
+      return;
+    }
+
+    try {
+      await downloadBinary(ctx, latestRaw);
+      await refreshVersion();
+      void vscode.window.showInformationMessage(`Fimod updated to ${latest}.`);
+    } catch (e) {
+      void vscode.window.showErrorMessage(`Fimod update failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  } catch {
+    getOutputChannel().appendLine("[binary] checkForUpdates: could not resolve latest version (offline?)");
   }
 }
 

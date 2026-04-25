@@ -322,6 +322,11 @@
           "type": "string",
           "default": "${workspaceFolder}/tests-molds/${moldName}",
           "description": "Pattern for the tests directory used by 'fimod mold test'. Placeholders: ${workspaceFolder}, ${moldDir}, ${moldName}. Per-mold overrides (set via the Local Molds context menu) take precedence."
+        },
+        "fimod.binary.autoCheckUpdates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check for fimod binary updates on startup (managed installs only, at most once per 24 hours)."
         }
       }
     }
@@ -343,7 +348,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@vscode/vsce": "^3.7.1",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.0",
     "eslint": "^9.0.0",
     "prettier": "^3.8.2",
     "typescript": "^5.6.0"
