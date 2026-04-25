@@ -40,7 +40,7 @@ suite("extractDocstring", () => {
   });
 
   test("skips leading comments", () => {
-    const doc = extractDocstring("# comment\n\n\"\"\"The mold.\"\"\"\ndef transform(): pass");
+    const doc = extractDocstring('# comment\n\n"""The mold."""\ndef transform(): pass');
     assert.strictEqual(doc, "The mold.");
   });
 });

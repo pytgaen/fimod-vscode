@@ -11,7 +11,13 @@ export default defineConfig([
     extensionDevelopmentPath: __dirname,
     workspaceFolder: path.join(__dirname, "tests-data/test-workspace"),
     version: "stable",
-    launchArgs: ["--no-sandbox", "--disable-gpu-sandbox", "--disable-updates", "--skip-welcome", "--skip-release-notes"],
+    launchArgs: [
+      "--no-sandbox",
+      "--disable-gpu-sandbox",
+      "--disable-updates",
+      "--skip-welcome",
+      "--skip-release-notes",
+    ],
     mocha: {
       timeout: 15000,
     },
