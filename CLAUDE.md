@@ -4,7 +4,7 @@
 
 VS Code extension for [fimod](https://github.com/pytgaen/fimod), a Rust CLI that transforms structured data files using embedded Python "mold" scripts.
 
-See `PRODUCT.md` for the full product definition, feature specs, phasing, and fimod CLI reference.
+Phase notes live in `notes/` (e.g. `notes/phase3.md`). The fimod CLI reference is in the upstream [fimod repo](https://github.com/pytgaen/fimod).
 
 ## Stack
 

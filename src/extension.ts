@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { initOutputChannel, getOutputChannel, setExtensionContext } from "./fimod.js";
 import { initStatusBar, refreshVersion } from "./statusBar.js";
-import { ensureBinary, downloadBinary } from "./binary.js";
+import { ensureBinary, downloadBinary, checkForUpdates } from "./binary.js";
 import { shape, previewProvider, setLocalMoldsTree } from "./shape.js";
 import { initHistory } from "./moldPicker.js";
 import { createRegistryTree } from "./registryTree.js";
@@ -43,6 +43,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
       initStatusBar(ctx).catch((err) => {
         getOutputChannel().appendLine(`Status bar init failed: ${err}`);
       });
+      void checkForUpdates(ctx);
     });
 }
 

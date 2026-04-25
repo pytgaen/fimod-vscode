@@ -61,6 +61,24 @@ Click any mold in the tree views to open a detail panel:
 - Full source code
 - Mini playground — paste any input (JSON, YAML, CSV, text...), pick format, run, see output
 
+### Playground
+
+A dedicated side panel for iterating on molds with live feedback — ideal when authoring or tuning a mold against real input.
+
+- **Input source**: load from a file, paste from clipboard, or type directly in a scratchpad
+- **Mold source**: pick a registry mold (`@name`), a local mold file, or type an inline expression
+- **Live mode** (on by default): re-runs automatically on edits (debounced) and on save of the watched mold file
+- **Toolbar**: override input/output format, pass mold args, toggle live, refresh registry cache
+- **Output**: copy to clipboard or save to disk; errors show as a red banner while the last valid output stays visible
+
+Triggers:
+
+- Editor or explorer context menu → Fimod → Open Playground
+- Registry Explorer / Local Molds tree → right-click a mold → Open Playground
+- Command palette → `Fimod: Open Playground`
+
+Playground is read-only — use **Shape** to apply a transformation back to a file.
+
 ### Status bar
 
 Displays `fimod X.Y.Z` in the status bar when the binary is detected, so you always know which version is active.
@@ -71,22 +89,24 @@ Displays `fimod X.Y.Z` in the status bar when the binary is detected, so you alw
 
 ## Usage
 
-| Action                  | Shortcut                                |
-| ----------------------- | --------------------------------------- |
-| Shape (editor)          | `Ctrl+Shift+M` (`Cmd+Shift+M` on macOS) |
-| Shape (explorer)        | Right-click → Fimod → Shape             |
-| Shape (command palette) | `Fimod: Shape`                          |
+| Action                  | Shortcut                                                          |
+| ----------------------- | ----------------------------------------------------------------- |
+| Shape (editor)          | `Ctrl+Shift+M` (`Cmd+Shift+M` on macOS)                           |
+| Shape (explorer)        | Right-click → Fimod → Shape                                       |
+| Shape (command palette) | `Fimod: Shape`                                                    |
+| Playground              | `Fimod: Open Playground` or right-click → Fimod → Open Playground |
 
 ## Extension Settings
 
-| Setting                       | Default  | Description                                                         |
-| ----------------------------- | -------- | ------------------------------------------------------------------- |
-| `fimod.binaryPath`            | `""`     | Path to the fimod binary. If empty, searches `PATH`.                |
-| `fimod.shape.preview`         | `true`   | Show diff preview before applying transformations.                  |
-| `fimod.shape.formatDetection` | `"auto"` | Format detection mode: `auto` or `manual`.                          |
-| `fimod.shape.historySize`     | `3`      | Number of recent choices shown at the top of the quick pick (0–10). |
-| `fimod.registry.autoRefresh`  | `true`   | Automatically refresh registry tree on activation.                  |
-| `fimod.mold.scanPaths`        | `[]`     | Additional directories to scan for local molds.                     |
+| Setting                       | Default                                      | Description                                                                                                                                               |
+| ----------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fimod.binaryPath`            | `""`                                         | Path to the fimod binary. If empty, searches `PATH`.                                                                                                      |
+| `fimod.shape.preview`         | `true`                                       | Show diff preview before applying transformations.                                                                                                        |
+| `fimod.shape.formatDetection` | `"auto"`                                     | Format detection mode: `auto` or `manual`.                                                                                                                |
+| `fimod.shape.historySize`     | `3`                                          | Number of recent choices shown at the top of the quick pick (0–10).                                                                                       |
+| `fimod.registry.autoRefresh`  | `true`                                       | Automatically refresh registry tree on activation.                                                                                                        |
+| `fimod.mold.scanPaths`        | `[]`                                         | Additional directories to scan for local molds.                                                                                                           |
+| `fimod.mold.testsDirPattern`  | `${workspaceFolder}/tests-molds/${moldName}` | Pattern for the directory used by `fimod mold test`. Placeholders: `${workspaceFolder}`, `${moldDir}`, `${moldName}`. Per-mold overrides take precedence. |
 
 ## Supported formats
 

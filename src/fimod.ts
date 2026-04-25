@@ -22,7 +22,7 @@ export interface FimodResult {
   messages: FimodMessage[];
 }
 
-let outputChannel: vscode.OutputChannel;
+let outputChannel: vscode.OutputChannel | undefined;
 
 export function initOutputChannel(ctx: vscode.ExtensionContext): vscode.OutputChannel {
   outputChannel = vscode.window.createOutputChannel("Fimod");
@@ -31,6 +31,9 @@ export function initOutputChannel(ctx: vscode.ExtensionContext): vscode.OutputCh
 }
 
 export function getOutputChannel(): vscode.OutputChannel {
+  if (!outputChannel) {
+    outputChannel = vscode.window.createOutputChannel("Fimod");
+  }
   return outputChannel;
 }
 
@@ -50,7 +53,7 @@ function getBinaryPath(): string {
 
 const MSG_RE = /^\[(info|warn|error|FAIL)]\s*(.*)$/;
 
-function parseStderr(stderr: string): FimodMessage[] {
+export function parseStderr(stderr: string): FimodMessage[] {
   if (!stderr.trim()) {
     return [];
   }
@@ -68,9 +71,10 @@ function parseStderr(stderr: string): FimodMessage[] {
 
 function execFimod(args: string[], stdin?: string): Promise<FimodResult> {
   const bin = getBinaryPath();
-  outputChannel.appendLine(`> ${bin} ${args.join(" ")}`);
+  const ch = getOutputChannel();
+  ch.appendLine(`> ${bin} ${args.join(" ")}`);
   if (stdin !== undefined) {
-    outputChannel.appendLine(`  stdin: ${stdin.length} chars`);
+    ch.appendLine(`  stdin: ${stdin.length} chars`);
   }
   return new Promise((resolve) => {
     const proc = execFile(bin, args, { maxBuffer: 24 * 1024 * 1024 }, (error, stdout, stderr) => {
@@ -79,7 +83,7 @@ function execFimod(args: string[], stdin?: string): Promise<FimodResult> {
           ? ((error as ExecFileException).code as number)
           : 1
         : 0;
-      outputChannel.appendLine(`  exit: ${exitCode} | stdout: ${stdout?.length ?? 0} chars`);
+      ch.appendLine(`  exit: ${exitCode} | stdout: ${stdout?.length ?? 0} chars`);
       resolve({
         stdout: stdout ?? "",
         stderr: stderr ?? "",
@@ -115,10 +119,19 @@ export async function getVersion(): Promise<string | null> {
 }
 
 export function logStderr(result: FimodResult): void {
+  const ch = getOutputChannel();
   for (const msg of result.messages) {
     const prefix = msg.level === "print" ? "" : `[${msg.level}] `;
-    outputChannel.appendLine(`${prefix}${msg.text}`);
+    ch.appendLine(`${prefix}${msg.text}`);
   }
+}
+
+export function extractErrorSummary(result: FimodResult): string {
+  const tagged = result.messages.filter((m) => m.level === "error" || m.level === "fail").map((m) => m.text);
+  if (tagged.length > 0) return tagged.join(" / ");
+  const firstLine = result.stderr.split("\n").find((l) => l.trim());
+  if (firstLine) return firstLine.trim();
+  return `exit ${result.exitCode}`;
 }
 
 export function showError(message: string, result?: FimodResult): void {
@@ -127,7 +140,7 @@ export function showError(message: string, result?: FimodResult): void {
   }
   void vscode.window.showErrorMessage(message, "Show Output").then((choice) => {
     if (choice === "Show Output") {
-      outputChannel.show();
+      getOutputChannel().show();
     }
   });
 }

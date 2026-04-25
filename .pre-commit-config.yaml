@@ -13,12 +13,12 @@ repos:
     hooks:
       - id: prettier
         name: prettier
-        entry: npx prettier --check
+        entry: npx prettier --write
         language: system
         types_or: [ts, javascript, json, yaml, markdown]
 
       - id: eslint
         name: eslint
-        entry: npx eslint
+        entry: npx eslint --fix
         language: system
         files: ^src/.*\.ts$
