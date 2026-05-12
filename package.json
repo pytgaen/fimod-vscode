@@ -348,25 +348,25 @@
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.0.0",
-    "@types/vscode": "^1.85.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@types/node": "^25.7.0",
+    "@types/vscode": "^1.118.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.0.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.7.1",
-    "esbuild": "^0.25.0",
-    "eslint": "^9.0.0",
+    "@vscode/vsce": "^3.9.1",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.3.0",
     "mocha": "^11.7.5",
-    "prettier": "^3.8.2",
-    "typescript": "^5.6.0"
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@types/yauzl": "^2.10.3",
     "@vscode/codicons": "^0.0.45",
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.1",
-    "tar": "^7.5.13",
+    "tar": "^7.5.15",
     "yauzl": "^3.3.0"
   }
 }
